@@ -16,10 +16,10 @@ from torch.nn import functional as F
 from torch.optim.lr_scheduler import ExponentialLR
 
 # internal
+import pre_trained_word_vectors as pwv
+import entity_relation_dictionaries as erd
 from load_data import Data
-from models import *
-from pre_trained_word_vectors import *
-from entity_relation_dictionaries import *
+from models import HypE, HypER, DistMult, ConvE, ComplEx
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
@@ -166,7 +166,6 @@ class Experiment:
                 weights_entity_matrix[i] = np.array(embedding).mean(axis=0)
             except KeyError:
                 if not embedding:
-                    # weights_entity_matrix[i] = np.random.normal(scale=0.6, size=(300,))
                     weights_entity_matrix[i] = np.random.randn(300,) * np.sqrt(1 / (300 - 1))
                 else:
                     weights_entity_matrix[i] = np.array(embedding).mean(axis=0)
@@ -182,8 +181,6 @@ class Experiment:
         print(f'weights_entity_matrix size: {weights_entity_matrix.size}')
 
         self.relation_idxs = {d.relations[i]: i for i in range(len(d.relations))}
-        # relation2idx = {str(i): d.relations[i].replace(
-        #     '_', ' ').strip().split() for i in range(len(d.relations))}
         relation2idx = {str(i): re.sub(r'[/]', ' ', d.relations[i]).strip().split() for i in range(len(d.relations))}
         for idx in relation2idx:
             relation2idx[idx] = [item.split('_') for item in relation2idx[idx]]
@@ -213,7 +210,6 @@ class Experiment:
                 relation_found = True
             except KeyError:
                 if not embedding:
-                    # weights_relation_matrix[i] = np.random.normal(scale=0.6, size=(300,))
                     weights_entity_matrix[i] = np.random.randn(300, ) * np.sqrt(1 / (300 - 1))
                 else:
                     weights_relation_matrix[i] = np.array(embedding).mean(axis=0)
@@ -280,9 +276,6 @@ class Experiment:
                     e1_idx = e1_idx.cuda()
                     r_idx = r_idx.cuda()
 
-                # logits = model.forward(e1_idx, r_idx)
-                # logger.debug(f'logits size: {logits.size()}')
-                # predictions = F.sigmoid(logits)
                 predictions = model.forward(e1_idx, r_idx)
                 logger.debug(f'logits size: {predictions.size()}')
 
@@ -345,10 +338,9 @@ if __name__ == '__main__':
                             in_channels=1, out_channels=32, filt_h=1, filt_w=9, label_smoothing=0.1)
 
 
-    path = get_path('data/FB15k')
-    entity2idx = load_dictionary(path, 'fb', element='entity')
-    # relation2idx = load_dictionary(get_path(), tuple='relations')
+    path = erd.get_path('data/FB15k')
+    entity2idx = erd.load_dictionary(path, 'fb', element='entity')
 
-    language_model = load_fastext(get_lm_path())
+    language_model = pwv.load_fastext(pwv.get_lm_path())
 
     experiment.train_and_eval(entity2idx, language_model)

@@ -60,6 +60,6 @@ if __name__ == '__main__':
     element = 'entity'
 
     path = get_path(dirname, filename)
-    # save_dictionary(path, kg, element, '\t')
+    save_dictionary(path, kg, element, '\t')
     path = get_path(dirname)
     fb_entity_map = load_dictionary(path, kg, element)
