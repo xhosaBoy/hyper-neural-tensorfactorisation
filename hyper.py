@@ -321,7 +321,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--algorithm', type=str, default="HypER", nargs="?",
                         help='Which algorithm to use: HypER, ConvE, DistMult, or ComplEx')
-    parser.add_argument('--dataset', type=str, default="FB15k", nargs="?",
+    parser.add_argument('--dataset', type=str, default="FB15k-237", nargs="?",
                         help='Which dataset to use: FB15k, FB15k-237, WN18 or WN18RR')
     args = parser.parse_args()
 
@@ -340,7 +340,7 @@ if __name__ == '__main__':
         torch.cuda.manual_seed_all(seed)
 
     experiment = Experiment(model_name, num_iterations=200, batch_size=128, learning_rate=0.001,
-                            decay_rate=0.99, ent_vec_dim=300, rel_vec_dim=300, cuda=False,
+                            decay_rate=0.99, ent_vec_dim=300, rel_vec_dim=300, cuda=True,
                             input_dropout=0.2, hidden_dropout=0.3, feature_map_dropout=0.2,
                             in_channels=1, out_channels=32, filt_h=1, filt_w=9, label_smoothing=0.1)
 
