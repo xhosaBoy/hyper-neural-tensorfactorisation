@@ -173,20 +173,19 @@ class Experiment:
                 if entity_found:
                     entities_found += 1
 
-        print(f'entities_found: {entities_found}')
-        print(f'entity ids: {len(self.entity_idxs.keys())}')
-        print(f'pre trained coverage: {(entities_found / len(self.entity_idxs.keys()) * 100):.2f}%')
+        logger.info(f'number of entities_found: {entities_found}')
+        logger.info(f'number of unique entities found: {len(self.entity_idxs.keys())}')
+        logger.info(f'entity pre trained vector coverage: {(entities_found / len(self.entity_idxs.keys()) * 100):.2f}%')
 
         self.entity_weights = weights_entity_matrix
-        print(f'weights_entity_matrix size: {weights_entity_matrix.size}')
+        logger.debug(f'weights_entity_matrix size: {weights_entity_matrix.size}')
 
         self.relation_idxs = {d.relations[i]: i for i in range(len(d.relations))}
         relation2idx = {str(i): re.sub(r'[/]', ' ', d.relations[i]).strip().split() for i in range(len(d.relations))}
         for idx in relation2idx:
             relation2idx[idx] = [item.split('_') for item in relation2idx[idx]]
-        print(f'relation2idx: {relation2idx}')
         matrix_relation_len = len(d.relations)
-        print(f'matrix_relation_len: {matrix_relation_len}')
+        logger.debug(f'matrix_relation_len: {matrix_relation_len}')
         weights_relation_matrix = np.zeros((matrix_relation_len, 300))
         relations_found = 0
 
@@ -217,9 +216,9 @@ class Experiment:
                 if relation_found:
                     relations_found += 1
 
-        logger.info(f'relations_found: {relations_found}')
-        logger.info(f'relation ids: {len(self.relation_idxs.keys())}')
-        logger.info(f'pre trained coverage: {(relations_found / len(self.relation_idxs.keys()) * 100):.2f}%')
+        logger.info(f'number of relations found: {relations_found}')
+        logger.info(f'number of unique relations found: {len(self.relation_idxs.keys())}')
+        logger.info(f'relations pre-trained vector coverage: {(relations_found / len(self.relation_idxs.keys()) * 100):.2f}%')
 
         self.relation_weights = weights_relation_matrix
         logger.debug(f'weights_relation_matrix size: {weights_relation_matrix.size}')
@@ -252,7 +251,7 @@ class Experiment:
         er_vocab_pairs = list(er_vocab.keys())
         print(len(er_vocab_pairs))
 
-        print("Starting training...")
+        logger.info("Starting training...")
 
         for epoch in range(1, self.num_iterations + 1):
 
@@ -336,7 +335,6 @@ if __name__ == '__main__':
                             decay_rate=0.99, ent_vec_dim=300, rel_vec_dim=300, cuda=True,
                             input_dropout=0.2, hidden_dropout=0.3, feature_map_dropout=0.2,
                             in_channels=1, out_channels=32, filt_h=1, filt_w=9, label_smoothing=0.1)
-
 
     path = erd.get_path('data/FB15k')
     entity2idx = erd.load_dictionary(path, 'fb', element='entity')
