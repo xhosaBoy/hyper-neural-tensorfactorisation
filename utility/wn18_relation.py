@@ -4,6 +4,7 @@ import sys
 import re
 import copy
 import logging
+from pprint import pprint
 
 # 3rd party
 import psycopg2
@@ -21,7 +22,7 @@ stream_handler.setFormatter(formatter)
 logger.addHandler(stream_handler)
 
 
-def get_path(dirname, filename):
+def get_path(dirname, filename=None):
     """File path getter.
         Args:
             dirname (str): File directory.
@@ -31,7 +32,9 @@ def get_path(dirname, filename):
         """
     util_dirname, _ =  os.path.split(__file__)
     project, _ = os.path.split(util_dirname)
-    return os.path.join(project, dirname, filename)
+    path = os.path.join(project, dirname, filename) if filename else os.path.join(project, dirname)
+
+    return path
 
 
 def get_connection(user, password, host, port, database):
@@ -53,25 +56,21 @@ def get_connection(user, password, host, port, database):
     return connection
 
 
-def insert_record(record, tablename, connection):
+def insert_record(record, tablename, cursor, connection):
 
+    print(f'final record: {record}')
     columns = record.keys()
     logger.debug(f'columns: {columns}')
     values = record.values()
     logger.debug(f'values: {values}')
     values = list(map(lambda x: Json(x) if isinstance(x, dict) else x, values))
 
-    cursor = connection.cursor()
-    relation = tablename
-    attributes = AsIs(','.join(columns))
     values = tuple(values)
-    insert_statement = f"""INSERT INTO {relation} ({attributes}) 
-                           VALUES {values}
-                        """
-    logger.debug(f"cursor.mogrify: {cursor.mogrify(insert_statement)}")
+    insert_statement = 'INSERT INTO %s (%s) VALUES %s'
+    logger.debug(f"cursor.mogrify: {cursor.mogrify(insert_statement, (AsIs(tablename), AsIs(','.join(columns)), values))}")
 
     try:
-        cursor.execute(insert_statement)
+        cursor.execute(insert_statement, (AsIs(tablename), AsIs(','.join(columns)), values))
     except Exception as e:
         logger.error(f'Could not insert into {tablename}, {e}')
 
@@ -87,36 +86,29 @@ def insert_records(records):
                         '5432',
                         'tensor_factorisation') as connection:
 
-        tablename = 'wn18_entity'
+        tablename = 'wn18_relation'
+        cursor = connection.cursor()
 
         for record in records:
-            insert_record(record, tablename, connection)
+            insert_record(record, tablename, cursor, connection)
+
+        count = cursor.rowcount
+        logger.debug(f'{count} Record inserted successfully into {tablename} table')
 
 
-def get_records(entityfile):
-    with open(entityfile, 'r') as entityfile:
+def get_records(relationfile):
+    with open(relationfile, 'r') as entityfile:
         records = []
         record = {}
 
         for line in entityfile:
-            synset_id, intelligible_name, definition = line.strip().split('\t')
-            logger.debug(f'synset_id: {synset_id}, intelligible_name: {intelligible_name}, defintion: {definition}')
+            _, relation, _ = line.strip().split('\t')
+            logger.debug(f'relation: {relation}')
 
-            pattern = re.compile(r'^__([a-zA-Z0-9\'\._/-]*)_([A-Z]{2})_([0-9])')
-            doc = pattern.search(intelligible_name).group(1).replace('_', ' ').replace('"', '\"').replace("'", '"')
+            doc = relation.replace('_', ' ').strip()
             logger.debug(f'doc: {doc}')
-            POS_tag = pattern.search(intelligible_name).group(2)
-            logger.debug(f'POS_tag: {POS_tag}')
-            sense_index = pattern.search(intelligible_name).group(3)
-            logger.debug(f'sense_index: {sense_index}')
 
-            definition = definition.replace('_', ' ').replace('"', '\"').replace("'", '"')
-
-            record['synset_id'] = synset_id
             record['doc'] = doc
-            record['POS_tag'] = POS_tag
-            record['sense_index'] = int(sense_index)
-            record['definition'] = definition
 
             logger.debug(f'record: {record}')
             records.append(copy.copy(record))
@@ -127,9 +119,28 @@ def get_records(entityfile):
 
 
 def main():
-    entityfile = get_path('data/WN18', 'wordnet-mlj12-definitions.txt')
-    logger.debug(f'entityfile: {entityfile}')
-    records = get_records(entityfile)
+
+    relationfile = get_path('data/WN18')
+    logger.debug(f'relationfile: {relationfile}')
+
+    dirname, _, _, _, _ = list(os.walk(relationfile))
+    _, _, filenames = dirname
+
+    records = []
+
+    for filename in filenames:
+        if filename == 'train.txt':
+            logger.debug(f'filename: {filename}')
+            filename = get_path('data/WN18', filename)
+            records_train = [{'doc': value} for value in set([relation['doc'] for relation in get_records(filename)])]
+            logger.debug(f'records_train: {records_train}')
+
+            number_of_records = len(records_train)
+            logger.debug(f'number of relations so far: {number_of_records}')
+            records.extend(records_train)
+            if number_of_records == 18:
+                break
+
     insert_records(records)
 
 
