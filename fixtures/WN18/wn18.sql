@@ -1,7 +1,7 @@
-DROP TABLE if EXISTS wn18_entity;
-DROP TABLE if EXISTS wn18_relation;
+DROP TABLE if EXISTS entity;
+DROP TABLE if EXISTS relation;
 
-CREATE TABLE wn18_entity(
+CREATE TABLE entity(
    synset_id text PRIMARY KEY NOT NULL,
    doc text,
    POS_tag text,
@@ -9,7 +9,7 @@ CREATE TABLE wn18_entity(
    definition text
 );
 
-CREATE TABLE wn18_relation(
+CREATE TABLE relation(
    relation_id SERIAL PRIMARY KEY,
    doc text
 );
