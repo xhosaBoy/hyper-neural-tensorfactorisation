@@ -76,6 +76,7 @@ def insert_record(record, tablename, cursor, connection):
 
 
 def insert_records(records, tablename, connection):
+
     with connection as con:
         cursor = con.cursor()
 
@@ -83,20 +84,22 @@ def insert_records(records, tablename, connection):
             insert_record(record, tablename, cursor, con)
 
 
-def get_records(relationfile):
+def get_records(tripletfile):
 
-    with open(relationfile, 'r') as entityfile:
+    with open(tripletfile, 'r') as factfile:
         records = []
         record = {}
 
-        for line in entityfile:
-            _, relation, _ = line.strip().split('\t')
-            logger.debug(f'relation: {relation}')
+        for line in factfile:
+            subject, predicate, obj = line.strip().split('\t')
+            logger.debug(f'subject: {subject}, predicate: {predicate}, object: {obj}')
 
-            doc = relation.replace('_', ' ').strip()
-            logger.debug(f'doc: {doc}')
+            predicate = predicate.replace('_', ' ').strip()
+            logger.debug(f'predicate: {predicate}')
 
-            record['doc'] = doc
+            record['subject'] = subject
+            record['predicate'] = predicate
+            record['object'] = obj
 
             logger.debug(f'record: {record}')
             records.append(copy.copy(record))
@@ -113,32 +116,25 @@ def main():
                                 '5432',
                                 'wn18')
 
-    tablename = 'relation'
+    tripletfile = get_path('data/WN18')
+    logger.debug(f'tripletfile: {tripletfile}')
 
-    relationfile = get_path('data/WN18')
-    logger.debug(f'relationfile: {relationfile}')
-
-    dirname, _, _, _, _ = list(os.walk(relationfile))
+    dirname, _, _, _, _ = list(os.walk(tripletfile))
     _, _, filenames = dirname
 
-    records = []
     experiment = ['train.txt', 'valid.txt', 'test.txt']
 
     for filename in filenames:
         if filename in experiment:
+            tablename, _ = filename.split('.')
             logger.debug(f'filename: {filename}')
             filename = get_path('data/WN18', filename)
-            records = [{'doc': value} for value in set([relation['doc'] for relation in get_records(filename)])]
-            logger.debug(f'records_train: {records}')
-
+            records = get_records(filename)
+            logger.debug(f'training records: {records}')
             number_of_records = len(records)
-            logger.debug(f'number of relations so far: {number_of_records}')
-            records.extend(records)
+            logger.debug(f'number of training records: {number_of_records}')
 
-    records = [{'doc': value} for value in set([relation['doc'] for relation in records])]
-    logger.info(f'final relations: {records}')
-    logger.info(f'final number of relations: {len(records)}')
-    insert_records(records, tablename, connection)
+            insert_records(records, tablename, connection)
 
 
 if __name__ == '__main__':
