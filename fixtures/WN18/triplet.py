@@ -114,7 +114,7 @@ def main():
                                 '*********',
                                 '127.0.0.1',
                                 '5432',
-                                'wn18')
+                                'tensor_factorisation_wn18')
 
     tripletfile = get_path('data/WN18')
     logger.debug(f'tripletfile: {tripletfile}')
