@@ -1,4 +1,4 @@
-create view fact (id, subject, s_name, predictate, object, o_name) as
+create view fact (id, subject, s_name, predicate, object, o_name) as
 select S.id, S.subject, S.name, S.predicate, O.object, O.name
 from (select *
 from train join entity
