@@ -5,8 +5,7 @@ DROP TABLE if EXISTS valid;
 DROP TABLE if EXISTS test;
 
 CREATE TABLE entity(
-   id SERIAL PRIMARY KEY,
-   synset_id text,
+   synset_id text PRIMARY KEY NOT NULL,
    name text UNIQUE
 );
 
