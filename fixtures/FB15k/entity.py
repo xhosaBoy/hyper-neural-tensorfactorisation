@@ -67,7 +67,7 @@ def insert_record(record, tablename, cursor, connection):
     try:
         cursor.execute(insert_statement, (AsIs(tablename), AsIs(','.join(columns)), tuple(values)))
     except Exception as e:
-        logger.error(f'Could not insert into {tablename}, {e}')
+        logger.debug(f'Could not insert into {tablename}, {e}')
 
     connection.commit()
     count = cursor.rowcount
@@ -93,8 +93,6 @@ def insert_records(entityfile, tablename, connection):
                     synset_id, intelligible_name = entity
                     logger.debug(f'synset_id: {synset_id}, intelligible_name: {intelligible_name}')
 
-                # pattern = re.compile(r'([a-zA-Z0-9\'\._/-]*)\s\(([a-zA-Z0-9\'\._/-]*)\)')
-                # name = pattern.search(intelligible_name).group(1).replace('_', ' ')
                 name = intelligible_name
                 logger.debug(f'name: {name}')
 
@@ -119,7 +117,7 @@ def main():
                                 'tensor_factorisation_fb15k')
     logger.info('Successfully conntect to database!')
 
-    tablename = 'entity'
+    tablename = 'entity_freebase'
     entityfile = get_path('data/FB15k', 'mid2name.tsv')
     logger.debug(f'entityfile: {entityfile}')
 
