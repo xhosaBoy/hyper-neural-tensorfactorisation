@@ -122,7 +122,6 @@ def main():
 
     dirname, = list(os.walk(tripletfile))
     _, _, filenames = dirname
-
     experiment = ['train.txt', 'valid.txt', 'test.txt']
 
     for filename in filenames:
@@ -130,12 +129,12 @@ def main():
             tablename, _ = filename.split('.')
             logger.debug(f'tablename: {tablename}')
             filename = get_path('data/FB15k', filename)
+
             logger.info('Getting records...')
             records = get_records(filename)
-            logger.info('Completed getting records!')
             logger.debug(f'training records: {records}')
-            number_of_records = len(records)
-            logger.debug(f'number of training records: {number_of_records}')
+            logger.debug(f'number of training records: {len(records)}')
+            logger.info('Completed getting records!')
 
             logger.info('Inserting records...')
             insert_records(records, tablename, connection)

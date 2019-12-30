@@ -49,11 +49,9 @@ def get_connection(user, password, host, port, database):
 
 
 def get_entity_ids(tablename, connection):
-    query = 'SELECT synset_id FROM %s WHERE name is null'
-
     with connection as con:
         cursor = con.cursor()
-
+        query = 'SELECT synset_id FROM %s WHERE name is null'
         logger.debug(f"cursor.mogrify: {cursor.mogrify(query, (AsIs(tablename),))}")
 
         try:

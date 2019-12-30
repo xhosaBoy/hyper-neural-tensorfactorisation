@@ -92,13 +92,6 @@ def get_records(relationfile):
             _, relation, _ = line.strip().split('\t')
             logger.debug(f'relation: {relation}')
 
-            # names = relation.split('/')
-            # logger.debug(f'name: {names}')
-            #
-            # for name in names:
-            #     record['name'] = name
-            #     logger.debug(f'record: {record}')
-            #     records.append(record)
             record['name'] = relation
             logger.debug(f'record: {record}')
             records.append(record)
@@ -130,23 +123,24 @@ def main():
 
     for filename in filenames:
         if filename in experiment:
-            logger.debug(f'filename: {filename}')
             filename = get_path('data/FB15k', filename)
             logger.debug(f'filename: {filename}')
+
+            logger.info('Extending records...')
             records_new = [{'name': value} for value in set([relation['name'] for relation in get_records(filename)])]
             logger.debug(f'records_train: {records_new}')
-
-            number_of_records = len(records_new)
-            logger.debug(f'number of relations so far: {number_of_records}')
+            logger.debug(f'number of relations so far: {len(records_new)}')
             records.extend(records_new)
+            logger.info('Completed extending records!')
 
     logger.info('Successfully got records!')
 
-    logger.info(f'final number of relations: {len(records)}')
     records = [{'name': value} for value in set([relation['name'] for relation in records])]
-    logger.info(f'final relations: {records}')
     logger.info(f'final number of relations: {len(records)}')
+
+    logger.info('Inserting records...')
     insert_records(records, tablename, connection)
+    logger.info('Completed getting records!')
 
 
 if __name__ == '__main__':

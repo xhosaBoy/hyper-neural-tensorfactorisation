@@ -80,9 +80,8 @@ def insert_records(entityfile, tablename, connection):
 
         with connection as con:
             cursor = con.cursor()
-            index = 0
 
-            for line in entityfile:
+            for index, line in enumerate(entityfile):
                 record = {}
                 entity = line.strip().split('\t')
                 if len(entity) > 1:
@@ -104,8 +103,6 @@ def insert_records(entityfile, tablename, connection):
 
                 if index % 100000 == 0:
                     logger.info(f'{index + 1} lines processed')
-
-                index += 1
 
 
 def main():
